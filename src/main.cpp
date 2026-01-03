@@ -2,9 +2,11 @@
 #include <Adafruit_TinyUSB.h>
 
 // Consumer Control usage for Play/Pause
-static constexpr uint16_t CONSUMER_PLAY_PAUSE = 0x00CD;
-static constexpr uint16_t CONSUMER_SCAN_PREV_TRACK = 0x00B6;
-static constexpr uint16_t CONSUMER_SCAN_NEXT_TRACK = 0x00B5;
+static constexpr uint16_t MEDIA_PLAY_PAUSE = 0x00CD;
+static constexpr uint16_t MEDIA_SCAN_PREV_TRACK = 0x00B6;
+static constexpr uint16_t MEDIA_SCAN_NEXT_TRACK = 0x00B5;
+static constexpr uint8_t  RID_KEYBOARD= 1;
+static constexpr uint8_t  RID_CONSUMER = 2;
 
 // TinyUSB HID report descriptor for Consumer Control.
 uint8_t const desc_hid_report[] = {
@@ -22,23 +24,23 @@ static void normalPress(uint8_t keycode, uint8_t modifier = 0)
   report[0] = modifier;
   report[2] = keycode;
   // Send "press"
-  usb_hid.sendReport(1, report, sizeof(report));
+  usb_hid.sendReport(RID_KEYBOARD, report, sizeof(report));
   delay(20);
 
   // Release - Normal keybaord mode needs the arrary reseting to all zeros
   memset(report, 0, sizeof(report));
-  usb_hid.sendReport(1, report, sizeof(report));
+  usb_hid.sendReport(RID_KEYBOARD, report, sizeof(report));
   delay(20);
 }
 
 static void consumerPress(uint16_t usage)
 {
-  usb_hid.sendReport(2, &usage, sizeof(usage));
+  usb_hid.sendReport(RID_CONSUMER, &usage, sizeof(usage));
   delay(20);
 
   // Release
   usage = 0;
-  usb_hid.sendReport(2, &usage, sizeof(usage));
+  usb_hid.sendReport(RID_CONSUMER, &usage, sizeof(usage));
   delay(20);
 }
 
@@ -69,7 +71,7 @@ void loop() {
   if (digitalRead(16) == LOW) {
     Serial.println("Play/Pause");
     ledLight(true);
-    consumerPress(CONSUMER_PLAY_PAUSE);
+    consumerPress(MEDIA_PLAY_PAUSE);
     delay(300); // debounce
     ledLight(false);
   }
@@ -78,7 +80,7 @@ void loop() {
   if (digitalRead(17) == LOW) {
     Serial.println("Previous Track");
     ledLight(true);
-    consumerPress(CONSUMER_SCAN_PREV_TRACK);
+    consumerPress(MEDIA_SCAN_PREV_TRACK);
     delay(300); // debounce
     ledLight(false);
   }
@@ -87,7 +89,7 @@ void loop() {
   if (digitalRead(18) == LOW) {
     Serial.println("Next Track");
     ledLight(true);
-    consumerPress(CONSUMER_SCAN_NEXT_TRACK);
+    consumerPress(MEDIA_SCAN_NEXT_TRACK);
     delay(300); // debounce
     ledLight(false);
   }
